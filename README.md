@@ -215,27 +215,3 @@ To add support for a new programming language:
 3. **Add language mapping** in `app.py`
 4. **Test with sample code**
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **OpenAI** for providing the GPT models
-- **Streamlit** for the amazing web app framework
-- **GitPython** for repository cloning capabilities
-- **All contributors** who help improve this project
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/jainakshat30/AutoDocs/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jainakshat30/AutoDocs/discussions)
-- **Email**: [Your Email]
-
----
-
-**Made with ❤️ for the developer community**
-
-[![GitHub stars](https://img.shields.io/github/stars/jainakshat30/AutoDocs?style=social)](https://github.com/jainakshat30/AutoDocs)
-[![GitHub forks](https://img.shields.io/github/forks/jainakshat30/AutoDocs?style=social)](https://github.com/jainakshat30/AutoDocs)
-[![GitHub issues](https://img.shields.io/github/issues/jainakshat30/AutoDocs)](https://github.com/jainakshat30/AutoDocs/issues)
