@@ -1,0 +1,29 @@
+# 🐍 Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.DS_Store
+
+# ⚙️ Virtual environment
+venv/
+env/
+
+# 🧪 IDE/editor settings
+.vscode/
+.idea/
+*.swp
+
+# 🔐 Environment config
+.env
+
+# 📦 Temp & extracted directories
+temp_code/
+temp_repo_*/
+
+# 📄 Generated output
+docs/*.md
+docs/*.pdf
+
+# 🔍 Misc
+*.zip
