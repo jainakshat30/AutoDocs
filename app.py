@@ -5,7 +5,7 @@ import shutil
 import uuid
 from git import Repo
 
-from utils.code_parser import extract_code_info, extract_notebook_code
+from utils.code_parser import extract_code_info, extract_notebook_code, get_supported_extensions
 from utils.llm_wrapper import get_doc_from_llm
 from utils.pdf_exporter import markdown_to_pdf
 from agents.architect import ArchitectAgent
@@ -14,7 +14,42 @@ from agents.user import UserAgent
 
 st.set_page_config(page_title="AutoDocs 🔍", layout="wide")
 st.title("📄 AutoDocs — AI-Powered Code Documentation")
-st.markdown("> Upload a `.zip` of your project or clone a public GitHub repo.\n\nSupports `.py` and `.ipynb` files.")
+supported_extensions = get_supported_extensions()
+
+# Language mapping for better display
+language_map = {
+    '.py': 'Python', '.ipynb': 'Python (Jupyter)',
+    '.cpp': 'C++', '.cc': 'C++', '.cxx': 'C++', '.hpp': 'C++', '.h': 'C++',
+    '.java': 'Java',
+    '.js': 'JavaScript', '.jsx': 'JavaScript (React)',
+    '.ts': 'TypeScript', '.tsx': 'TypeScript (React)',
+    '.go': 'Go',
+    '.rs': 'Rust',
+    '.cs': 'C#',
+    '.php': 'PHP',
+    '.rb': 'Ruby',
+    '.swift': 'Swift',
+    '.kt': 'Kotlin',
+    '.scala': 'Scala'
+}
+
+# Create language filter
+languages = list(set(language_map.values()))
+selected_languages = st.multiselect(
+    "🔍 Filter by Programming Languages (optional):",
+    languages,
+    default=languages,
+    help="Select which programming languages to include in documentation generation"
+)
+
+# Filter extensions based on selected languages
+filtered_extensions = []
+for ext in supported_extensions:
+    if language_map.get(ext, 'Unknown') in selected_languages:
+        filtered_extensions.append(ext)
+
+extensions_text = ", ".join([f"`.{ext}`" for ext in filtered_extensions])
+st.markdown(f"> Upload a `.zip` of your project or clone a public GitHub repo.\n\nSupports: {extensions_text}")
 
 agents = [ArchitectAgent(), DeveloperAgent(), UserAgent()]
 docs = {}
@@ -36,18 +71,19 @@ if uploaded_file:
     with st.spinner("🧠 Generating documentation using AI agents..."):
         for root, dirs, files in os.walk(temp_dir):
             for file in files:
-                if not (file.endswith(".py") or file.endswith(".ipynb")):
+                file_extension = file.lower().split('.')[-1] if '.' in file else ''
+                if file_extension not in [ext.lstrip('.') for ext in filtered_extensions]:
                     continue
 
                 path = os.path.join(root, file)
                 code_info = None
 
-                if file.endswith(".py"):
-                    code_info = extract_code_info(path)
-                elif file.endswith(".ipynb"):
+                if file.endswith(".ipynb"):
                     code = extract_notebook_code(path)
                     if code:
-                        code_info = {"code": code, "functions": [], "classes": []}
+                        code_info = {"code": code, "functions": [], "classes": [], "language": "Python"}
+                else:
+                    code_info = extract_code_info(path)
 
                 if not code_info:
                     continue
@@ -63,7 +99,10 @@ if uploaded_file:
     st.success("📚 Documentation generated!")
 
     for file_name, agent_docs in docs.items():
-        st.subheader(f"📄 {file_name}")
+        # Get language info from the first agent's response or file extension
+        file_ext = file_name.lower().split('.')[-1] if '.' in file_name else ''
+        language = language_map.get(f'.{file_ext}', 'Unknown')
+        st.subheader(f"📄 {file_name} ({language})")
         for role, content in agent_docs.items():
             with st.expander(f"🧠 {role}"):
                 st.markdown(content)
@@ -116,18 +155,19 @@ if use_repo and repo_url:
         with st.spinner("🧠 Generating documentation using AI agents..."):
             for root, dirs, files in os.walk(temp_repo_dir):
                 for file in files:
-                    if not (file.endswith(".py") or file.endswith(".ipynb")):
+                    file_extension = file.lower().split('.')[-1] if '.' in file else ''
+                    if file_extension not in [ext.lstrip('.') for ext in filtered_extensions]:
                         continue
 
                     path = os.path.join(root, file)
                     code_info = None
 
-                    if file.endswith(".py"):
-                        code_info = extract_code_info(path)
-                    elif file.endswith(".ipynb"):
+                    if file.endswith(".ipynb"):
                         notebook_code = extract_notebook_code(path)
                         if notebook_code:
-                            code_info = {"code": notebook_code, "functions": [], "classes": []}
+                            code_info = {"code": notebook_code, "functions": [], "classes": [], "language": "Python"}
+                    else:
+                        code_info = extract_code_info(path)
 
                     if not code_info:
                         continue
@@ -146,7 +186,10 @@ if use_repo and repo_url:
         st.header("🧾 Documentation Preview")
 
         for file_name, agent_docs in docs.items():
-            st.subheader(f"📄 `{file_name}`")
+            # Get language info from file extension
+            file_ext = file_name.lower().split('.')[-1] if '.' in file_name else ''
+            language = language_map.get(f'.{file_ext}', 'Unknown')
+            st.subheader(f"📄 `{file_name}` ({language})")
             for role, content in agent_docs.items():
                 with st.expander(f"🧠 {role} Agent"):
                     st.markdown(content)
@@ -160,6 +203,16 @@ if use_repo and repo_url:
 if st.session_state.docs:
     st.markdown("---")
     st.markdown("### ✅ All docs generated! Click below to export:")
+    
+    # Show documentation preview
+    for file_name, agent_docs in st.session_state.docs.items():
+        # Get language info from file extension
+        file_ext = file_name.lower().split('.')[-1] if '.' in file_name else ''
+        language = language_map.get(f'.{file_ext}', 'Unknown')
+        st.subheader(f"📄 `{file_name}` ({language})")
+        for role, content in agent_docs.items():
+            with st.expander(f"🧠 {role} Agent"):
+                st.markdown(content)
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
