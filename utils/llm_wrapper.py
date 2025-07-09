@@ -1,8 +1,16 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+import streamlit as st
 
 load_dotenv()
+
+
+
+api_key = st.secrets["OPENROUTER_API_KEY"]
+if api_key is None:
+    raise ValueError("Missing OPENROUTER_API_KEY in secrets")
+
 
 api_key = os.getenv("OPENROUTER_API_KEY")
 if api_key is None:
